@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bedtime Story with Zoom</title>
+<style>
+  #storyBox {
+    border: 1px solid #ccc;
+    padding: 15px;
+    width: 400px;
+    height: 200px;
+    overflow-y: auto; /* Add scrollbar if content overflows */
+    font-size: 1em; /* Initial font size */
+  }
+  button {
+    margin-top: 10px;
+    padding: 8px 15px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div id="storyBox">
+  Once upon a time, in a cozy little forest nestled among rolling hills, lived a friendly little bear named Barnaby. Barnaby loved to explore. One sunny morning, he decided to venture further into the woods than he ever had before. He skipped past tall trees and colorful wildflowers, his little nose twitching with curiosity. Soon, he came to a sparkling stream. The water looked so cool and inviting that Barnaby dipped his paw in. It was wonderfully refreshing! As he continued his walk, he heard a soft chirping sound coming from a nearby bush. He peeked inside and saw a tiny bird with bright blue feathers. The bird seemed to have hurt its wing. Barnaby, being a kind bear, gently scooped up the little bird and carried it back to his den. He made a soft bed of leaves for the bird and brought it some juicy berries. The little bird chirped happily, and soon its wing felt much better. The next morning, the bird flew out of Barnaby's den and sang a beautiful song of thanks before soaring into the sky. Barnaby smiled. He felt happy that he could help a friend. And as the sun began to set, Barnaby yawned, feeling tired but content after his big adventure. He snuggled into his own cozy bed and drifted off to sleep, dreaming of friendly birds and sparkling streams. Sweet dreams!
+</div>
+
+<div>
+  <button onclick="zoomIn()">Zoom In</button>
+  <button onclick="zoomOut()">Zoom Out</button>
+</div>
+
+<script>
+  const storyBox = document.getElementById('storyBox');
+  let currentFontSize = 1; // Initial font size in em
+
+  function zoomIn() {
+    currentFontSize += 0.1;
+    storyBox.style.fontSize = currentFontSize + 'em';
+  }
+
+  function zoomOut() {
+    if (currentFontSize > 0.7) { // Prevent font size from becoming too small
+      currentFontSize -= 0.1;
+      storyBox.style.fontSize = currentFontSize + 'em';
+    }
+  }
+</script>
+
+</body>
+</html>
