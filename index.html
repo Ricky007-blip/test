@@ -112,6 +112,7 @@
 
         let startDistance = null;
         let initialFontSize = null;
+        let isPinching = false;
 
         testimonialElement.addEventListener('touchstart', function(event) {
             if (event.touches.length === 2) {
@@ -120,11 +121,14 @@
                     event.touches[0].clientY - event.touches[1].clientY
                 );
                 initialFontSize = parseFloat(window.getComputedStyle(testimonialElement).fontSize);
+                isPinching = true;
+            } else {
+                isPinching = false;
             }
-        });
+        }, { passive: false });
 
         testimonialElement.addEventListener('touchmove', function(event) {
-            if (event.touches.length === 2 && startDistance !== null && initialFontSize !== null) {
+            if (isPinching && event.touches.length === 2 && startDistance !== null && initialFontSize !== null) {
                 const currentDistance = Math.hypot(
                     event.touches[0].clientX - event.touches[1].clientX,
                     event.touches[0].clientY - event.touches[1].clientY
@@ -132,22 +136,23 @@
                 const scaleFactor = currentDistance / startDistance;
                 const newFontSize = initialFontSize * scaleFactor;
 
-                // Begränsa fontstorleken
-                const minFontSize = parseFloat(window.getComputedStyle(testimonialElement).fontSize) * 0.8; // Justera vid behov
-                const maxFontSize = parseFloat(window.getComputedStyle(testimonialElement).fontSize) * 2.5; // Justera vid behov
+                const minFontSize = parseFloat(window.getComputedStyle(testimonialElement).fontSize) * 0.8;
+                const maxFontSize = parseFloat(window.getComputedStyle(testimonialElement).fontSize) * 2.5;
 
                 if (newFontSize >= minFontSize && newFontSize <= maxFontSize) {
                     testimonialElement.style.fontSize = newFontSize + 'px';
                 }
+                event.preventDefault();
             }
-        });
+        }, { passive: false });
 
         testimonialElement.addEventListener('touchend', function(event) {
             startDistance = null;
             initialFontSize = null;
+            isPinching = false;
         });
 
-        // Förhindra standard pinch-zoom på testimonial-elementet
+        // Förhindra standard pinch-zoom ytterligare
         testimonialElement.addEventListener('gesturestart', function(event) {
             event.preventDefault();
         });
