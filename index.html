@@ -1,50 +1,161 @@
 <!DOCTYPE html>
-<html>
+<html lang="sv">
 <head>
-<title>Bedtime Story with Zoom</title>
-<style>
-  #storyBox {
-    border: 1px solid #ccc;
-    padding: 15px;
-    width: 400px;
-    height: 200px;
-    overflow-y: auto; /* Add scrollbar if content overflows */
-    font-size: 1em; /* Initial font size */
-  }
-  button {
-    margin-top: 10px;
-    padding: 8px 15px;
-    cursor: pointer;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webbsida med Testimonial Zoom</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1em 0;
+            text-align: center;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+
+        nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+        }
+
+        #about {
+            padding: 20px;
+            background-color: white;
+            margin: 20px;
+            border-radius: 5px;
+        }
+
+        #testimonials {
+            padding: 20px;
+            background-color: #e9e9e9;
+            margin: 20px;
+            border-radius: 5px;
+        }
+
+        .testimonial-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1em 0;
+            background-color: #333;
+            color: white;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
 
-<div id="storyBox">
-  Rif1: Once upon a time, in a cozy little forest nestled among rolling hills, lived a friendly little bear named Barnaby. Barnaby loved to explore. One sunny morning, he decided to venture further into the woods than he ever had before. He skipped past tall trees and colorful wildflowers, his little nose twitching with curiosity. Soon, he came to a sparkling stream. The water looked so cool and inviting that Barnaby dipped his paw in. It was wonderfully refreshing! As he continued his walk, he heard a soft chirping sound coming from a nearby bush. He peeked inside and saw a tiny bird with bright blue feathers. The bird seemed to have hurt its wing. Barnaby, being a kind bear, gently scooped up the little bird and carried it back to his den. He made a soft bed of leaves for the bird and brought it some juicy berries. The little bird chirped happily, and soon its wing felt much better. The next morning, the bird flew out of Barnaby's den and sang a beautiful song of thanks before soaring into the sky. Barnaby smiled. He felt happy that he could help a friend. And as the sun began to set, Barnaby yawned, feeling tired but content after his big adventure. He snuggled into his own cozy bed and drifted off to sleep, dreaming of friendly birds and sparkling streams. Sweet dreams!
-</div>
+    <header>
+        <h1>Min Webbplats</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Hem</a></li>
+                <li><a href="#">Om Oss</a></li>
+                <li><a href="#">Testimonials</a></li>
+                <li><a href="#">Kontakt</a></li>
+            </ul>
+        </nav>
+    </header>
 
-<div>
-  <button onclick="zoomIn()">Zoom In</button>
-  <button onclick="zoomOut()">Zoom Out</button>
-</div>
+    <section id="about">
+        <h2>Om Oss</h2>
+        <p>Här kan du skriva lite information om ditt företag eller din verksamhet. Berätta om din historia, dina värderingar och vad som gör dig unik.</p>
+    </section>
 
-<script>
-  const storyBox = document.getElementById('storyBox');
-  let currentFontSize = 1; // Initial font size in em
+    <section id="testimonials">
+        <h2>Vad våra kunder säger</h2>
+        <div class="testimonial-item">
+            <p>"Jag är otroligt nöjd med produkten! Den överträffade verkligen mina förväntningar. Rekommenderar starkt!" - Anna Svensson</p>
+        </div>
+        <div class="testimonial-item">
+            <p>"Servicen var fantastisk. Teamet var mycket hjälpsamma och svarade snabbt på alla mina frågor." - Karl Nilsson</p>
+        </div>
+        <div class="testimonial-item">
+            <p>"Kvaliteten är utmärkt och priset är mycket rimligt. Jag kommer definitivt att handla här igen!" - Lisa Persson</p>
+        </div>
+        <div class="testimonial-item">
+            <p>"En fantastisk upplevelse från början till slut. Produkten är precis vad jag behövde." - Erik Johansson</p>
+        </div>
+    </section>
 
-  function zoomIn() {
-    currentFontSize += 0.1;
-    storyBox.style.fontSize = currentFontSize + 'em';
-  }
+    <footer>
+        <p>&copy; 2025 Min Webbplats</p>
+    </footer>
 
-  function zoomOut() {
-    if (currentFontSize > 0.7) { // Prevent font size from becoming too small
-      currentFontSize -= 0.1;
-      storyBox.style.fontSize = currentFontSize + 'em';
-    }
-  }
-</script>
+    <script>
+        const testimonialElement = document.getElementById('testimonials');
+
+        let startDistance = null;
+        let initialFontSize = null;
+
+        testimonialElement.addEventListener('touchstart', function(event) {
+            if (event.touches.length === 2) {
+                startDistance = Math.hypot(
+                    event.touches[0].clientX - event.touches[1].clientX,
+                    event.touches[0].clientY - event.touches[1].clientY
+                );
+                initialFontSize = parseFloat(window.getComputedStyle(testimonialElement).fontSize);
+            }
+        });
+
+        testimonialElement.addEventListener('touchmove', function(event) {
+            if (event.touches.length === 2 && startDistance !== null && initialFontSize !== null) {
+                const currentDistance = Math.hypot(
+                    event.touches[0].clientX - event.touches[1].clientX,
+                    event.touches[0].clientY - event.touches[1].clientY
+                );
+                const scaleFactor = currentDistance / startDistance;
+                const newFontSize = initialFontSize * scaleFactor;
+
+                // Begränsa fontstorleken
+                const minFontSize = parseFloat(window.getComputedStyle(testimonialElement).fontSize) * 0.8; // Justera vid behov
+                const maxFontSize = parseFloat(window.getComputedStyle(testimonialElement).fontSize) * 2.5; // Justera vid behov
+
+                if (newFontSize >= minFontSize && newFontSize <= maxFontSize) {
+                    testimonialElement.style.fontSize = newFontSize + 'px';
+                }
+            }
+        });
+
+        testimonialElement.addEventListener('touchend', function(event) {
+            startDistance = null;
+            initialFontSize = null;
+        });
+
+        // Förhindra standard pinch-zoom på testimonial-elementet
+        testimonialElement.addEventListener('gesturestart', function(event) {
+            event.preventDefault();
+        });
+
+        testimonialElement.addEventListener('gesturechange', function(event) {
+            event.preventDefault();
+        });
+    </script>
 
 </body>
 </html>
