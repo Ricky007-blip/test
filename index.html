@@ -136,8 +136,9 @@
                 const scaleFactor = currentDistance / startDistance;
                 const newFontSize = initialFontSize * scaleFactor;
 
-                const minFontSize = parseFloat(window.getComputedStyle(testimonialElement).fontSize) * 0.8;
-                const maxFontSize = parseFloat(window.getComputedStyle(testimonialElement).fontSize) * 2.5;
+                // Ändra minimum fontstorlek till den initiala storleken
+                const minFontSize = initialFontSize;
+                const maxFontSize = parseFloat(window.getComputedStyle(testimonialElement).fontSize) * 2.5; // Justera vid behov
 
                 if (newFontSize >= minFontSize && newFontSize <= maxFontSize) {
                     testimonialElement.style.fontSize = newFontSize + 'px';
