@@ -67,6 +67,7 @@
       const pos = getMousePos(e);
       if (!scaleRatio) {
         clickPoints.push(pos);
+        drawAll();
         if (clickPoints.length === 2) {
           const dist = getDistance(clickPoints[0], clickPoints[1]);
           const realLength = prompt("Enter the actual length between these two points (in cm):");
@@ -129,14 +130,25 @@
     });
 
     redoBtn.addEventListener('click', () => {
-      resetTool();
-      ctx.drawImage(img, 0, 0);
-      output.innerHTML = 'Click two points (e.g. known width), then input actual length.';
+      rectangles.pop();
+      areaList.removeChild(areaList.lastChild);
+      drawAll();
     });
 
     function drawAll() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
+
+      // Draw reference points if scale is not set
+      if (!scaleRatio && clickPoints.length > 0) {
+        ctx.fillStyle = 'red';
+        clickPoints.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 5, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+      }
+
       rectangles.forEach(rect => {
         ctx.strokeStyle = rect.type === 'wall' ? 'green' : 'blue';
         ctx.lineWidth = 2;
