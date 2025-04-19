@@ -69,15 +69,19 @@
         clickPoints.push(pos);
         drawAll();
         if (clickPoints.length === 2) {
-          const dist = getDistance(clickPoints[0], clickPoints[1]);
-          const realLength = prompt("Enter the actual length between these two points (in cm):");
-          if (realLength && !isNaN(realLength)) {
-            scaleRatio = realLength / dist;
-            clickPoints = [];
-            output.innerHTML = `Scale set: 1 pixel = ${scaleRatio.toFixed(4)} cm. Now draw rectangle of the wall.`;
-            okBtn.disabled = false;
-            doneBtn.disabled = false;
-          }
+          drawAll(); // ensures both red dots are shown before prompt
+          setTimeout(() => {
+            const dist = getDistance(clickPoints[0], clickPoints[1]);
+            const realLength = prompt("Enter the actual length between these two points (in cm):");
+            if (realLength && !isNaN(realLength)) {
+              scaleRatio = realLength / dist;
+              clickPoints = [];
+              output.innerHTML = `Scale set: 1 pixel = ${scaleRatio.toFixed(4)} cm. Now draw rectangle of the wall.`;
+              okBtn.disabled = false;
+              doneBtn.disabled = false;
+              drawAll();
+            }
+          }, 10);
         }
       } else {
         rectStart = pos;
