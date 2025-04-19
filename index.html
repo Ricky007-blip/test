@@ -18,7 +18,8 @@
 </head>
 <body>
   <h2>Measure From Image</h2>
-  <input type="file" id="upload" accept="image/*" capture="environment">
+  <input type="file" id="upload" accept="image/*" style="display: none;">
+  <button id="loadPhotoBtn">Load Photo</button>
   <br><br>
   <button id="okBtn" disabled>OK</button>
   <button id="doneBtn" disabled>DONE</button>
@@ -30,6 +31,7 @@
 
   <script>
     const upload = document.getElementById('upload');
+    const loadPhotoBtn = document.getElementById('loadPhotoBtn');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const output = document.getElementById('output');
@@ -46,6 +48,10 @@
     let rectPreview = null;
     let isDrawing = false;
     let mode = 'wall';
+
+    loadPhotoBtn.addEventListener('click', () => {
+      upload.click();
+    });
 
     upload.addEventListener('change', (e) => {
       const file = e.target.files[0];
