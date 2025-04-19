@@ -1,203 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anya Petrova - Singer & Funeral Ceremony Hostess</title>
-    <style>
-        /* Basic Mobile-First CSS (Conceptual - needs full implementation) */
-        body {
-            font-family: 'Open Sans', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #FFFFFF;
-            color: #333; /* Dark grey for readability */
-        }
-
-        header {
-            background-color: #FCE4EC;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .hero-image img {
-            width: 100%;
-            max-width: 400px;
-            border-radius: 50%; /* Circular image */
-            margin-bottom: 20px;
-        }
-
-        h1, h2, h3 {
-            font-family: 'Playfair Display', serif;
-            color: #333;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-
-        .section {
-            padding: 30px;
-            text-align: center;
-        }
-
-        .services-list, .contact-info {
-            list-style: none;
-            padding: 0;
-            margin-bottom: 20px;
-        }
-
-        .services-list li, .contact-info li {
-            margin-bottom: 10px;
-        }
-
-        .testimonials-grid {
-            display: grid;
-            grid-template-columns: 1fr; /* Single column for mobile */
-            gap: 20px;
-            padding: 20px;
-        }
-
-        .testimonial-card {
-            background-color: #FFFFFF;
-            border: 1px solid #F8BBD0;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05);
-            text-align: left;
-        }
-
-        .testimonial-card p {
-            margin-bottom: 5px;
-        }
-
-        .testimonial-author {
-            font-style: italic;
-            color: #777;
-            font-size: 0.9em;
-        }
-
-        footer {
-            background-color: #FCE4EC;
-            text-align: center;
-            padding: 15px;
-            font-size: 0.8em;
-            color: #777;
-        }
-
-        /* Media query for larger screens (e.g., tablets and desktops) */
-        @media (min-width: 768px) {
-            .testimonials-grid {
-                grid-template-columns: repeat(3, 1fr); /* Three columns for larger screens */
-            }
-        }
-    </style>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Photo Measure Tool</title>
+  <style>
+    canvas {
+      border: 1px solid #ccc;
+      cursor: crosshair;
+      max-width: 100%;
+    }
+    #output {
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="hero-image">
-            <img src="placeholder-profile.jpg" alt="Anya Petrova" style="width: 150px; height: 150px; object-fit: cover;">
-        </div>
-        <h1>Anya Petrova</h1>
-        <p>Singer & Funeral Ceremony Hostess</p>
-    </header>
+  <h2>Measure From Image</h2>
+  <input type="file" id="upload" accept="image/*">
+  <br><br>
+  <canvas id="canvas"></canvas>
+  <div id="output"></div>
 
-    <section id="about" class="section">
-        <h2>About Anya</h2>
-        <p>With a voice that soothes and a presence that comforts, Anya Petrova offers a unique blend of services. As a professional singer, she brings beauty and emotion to special occasions. As a compassionate funeral ceremony hostess, she provides guidance and support during sensitive times, ensuring a respectful and meaningful farewell.</p>
-        <p>Driven by a passion for music and a deep understanding of human emotions, Anya is dedicated to providing personalized and heartfelt services tailored to your individual needs.</p>
-    </section>
+  <script>
+    const upload = document.getElementById('upload');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const output = document.getElementById('output');
 
-    <section id="services" class="section">
-        <h2>Services</h2>
-        <div style="display: flex; flex-direction: column; align-items: center;">
-            <div style="width: 80%; max-width: 500px;">
-                <h3>Singing Services</h3>
-                <ul class="services-list">
-                    <li>Weddings and Civil Ceremonies</li>
-                    <li>Corporate Events and Private Parties</li>
-                    <li>Special Occasions and Celebrations</li>
-                </ul>
-                <h3>Funeral Ceremony Hosting</h3>
-                <ul class="services-list">
-                    <li>Guidance in Planning and Structuring the Ceremony</li>
-                    <li>Coordination with Funeral Directors and Other Participants</li>
-                    <li>Delivery of Readings and Tributes</li>
-                    <li>Creating a Personalized and Meaningful Service</li>
-                </ul>
-            </div>
-        </div>
-    </section>
+    let img = new Image();
+    let clickPoints = [];
+    let scaleRatio = null;
 
-    <section id="testimonials" class="section">
-        <h2>Testimonials</h2>
-        <div class="testimonials-grid">
-            <div class="testimonial-card">
-                <p>"Anya's singing at our wedding was absolutely breathtaking. Her voice is angelic, and she created the perfect atmosphere."</p>
-                <p class="testimonial-author">- Sarah M.</p>
-            </div>
-            <div class="testimonial-card">
-                <p>"Anya guided us through a very difficult time with grace and compassion. Her support in hosting my mother's funeral was invaluable."</p>
-                <p class="testimonial-author">- John B.</p>
-            </div>
-            <div class="testimonial-card">
-                <p>"Her performance at our corporate gala was a highlight of the evening. Professional, talented, and a joy to work with."</p>
-                <p class="testimonial-author">- Emily K.</p>
-            </div>
-            <div class="testimonial-card">
-                <p>Testimonial 4 goes here...</p>
-                <p class="testimonial-author">- Author 4</p>
-            </div>
-            <div class="testimonial-card">
-                <p>Testimonial 5 goes here...</p>
-                <p class="testimonial-author">- Author 5</p>
-            </div>
-            <div class="testimonial-card">
-                <p>Testimonial 6 goes here...</p>
-                <p class="testimonial-author">- Author 6</p>
-            </div>
-            <div class="testimonial-card">
-                <p>Testimonial 7 goes here...</p>
-                <p class="testimonial-author">- Author 7</p>
-            </div>
-            <div class="testimonial-card">
-                <p>Testimonial 8 goes here...</p>
-                <p class="testimonial-author">- Author 8</p>
-            </div>
-            <div class="testimonial-card">
-                <p>Testimonial 9 goes here...</p>
-                <p class="testimonial-author">- Author 9</p>
-            </div>
-        </div>
-    </section>
+    upload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-    <section id="contact" class="section">
-        <h2>Contact Anya</h2>
-        <div style="display: flex; flex-direction: column; align-items: center;">
-            <div style="width: 80%; max-width: 400px;">
-                <p>For inquiries and bookings, please feel free to reach out.</p>
-                <ul class="contact-info">
-                    <li><strong>Email:</strong> anya.petrova@email.com</li>
-                    <li><strong>Phone:</strong> +46 70-XXXX XXXX</li>
-                    </ul>
-                </div>
-        </div>
-    </section>
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        img.onload = function () {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          clickPoints = [];
+          scaleRatio = null;
+          output.innerHTML = 'Click two points (e.g. known width), then input actual length.';
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
 
-    <footer>
-        <p>&copy; 2025 Anya Petrova. All rights reserved.</p>
-    </footer>
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      clickPoints.push({ x, y });
 
-    <script>
-        // Basic smooth scrolling for navigation (if needed)
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
+      ctx.fillStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
 
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-    </script>
+      if (clickPoints.length === 2) {
+        const dist = getDistance(clickPoints[0], clickPoints[1]);
+        const realLength = prompt("Enter the actual length between these two points (in cm):");
+        if (realLength && !isNaN(realLength)) {
+          scaleRatio = realLength / dist;
+          output.innerHTML = `Scale set: 1 pixel = ${scaleRatio.toFixed(4)} cm`;
+        }
+      } else if (clickPoints.length > 2 && scaleRatio) {
+        const dist = getDistance(clickPoints[clickPoints.length - 2], clickPoints[clickPoints.length - 1]);
+        const cm = dist * scaleRatio;
+        output.innerHTML = `Measured distance: ${cm.toFixed(2)} cm`;
+      }
+    });
+
+    function getDistance(p1, p2) {
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+  </script>
 </body>
 </html>
