@@ -30,6 +30,9 @@
     let img = new Image();
     let clickPoints = [];
     let scaleRatio = null;
+    let rectangles = [];
+    let drawingRect = false;
+    let rectStart = null;
 
     upload.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -41,8 +44,7 @@
           canvas.width = img.width;
           canvas.height = img.height;
           ctx.drawImage(img, 0, 0);
-          clickPoints = [];
-          scaleRatio = null;
+          resetTool();
           output.innerHTML = 'Click two points (e.g. known width), then input actual length.';
         };
         img.src = event.target.result;
@@ -50,35 +52,81 @@
       reader.readAsDataURL(file);
     });
 
-    canvas.addEventListener('click', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      clickPoints.push({ x, y });
-
-      ctx.fillStyle = 'red';
-      ctx.beginPath();
-      ctx.arc(x, y, 5, 0, Math.PI * 2);
-      ctx.fill();
-
-      if (clickPoints.length === 2) {
-        const dist = getDistance(clickPoints[0], clickPoints[1]);
-        const realLength = prompt("Enter the actual length between these two points (in cm):");
-        if (realLength && !isNaN(realLength)) {
-          scaleRatio = realLength / dist;
-          output.innerHTML = `Scale set: 1 pixel = ${scaleRatio.toFixed(4)} cm`;
+    canvas.addEventListener('mousedown', (e) => {
+      const pos = getMousePos(e);
+      if (!scaleRatio) {
+        clickPoints.push(pos);
+        drawPoint(pos);
+        if (clickPoints.length === 2) {
+          const dist = getDistance(clickPoints[0], clickPoints[1]);
+          const realLength = prompt("Enter the actual length between these two points (in cm):");
+          if (realLength && !isNaN(realLength)) {
+            scaleRatio = realLength / dist;
+            output.innerHTML = `Scale set: 1 pixel = ${scaleRatio.toFixed(4)} cm`;
+          }
         }
-      } else if (clickPoints.length > 2 && scaleRatio) {
-        const dist = getDistance(clickPoints[clickPoints.length - 2], clickPoints[clickPoints.length - 1]);
-        const cm = dist * scaleRatio;
-        output.innerHTML = `Measured distance: ${cm.toFixed(2)} cm`;
+      } else {
+        drawingRect = true;
+        rectStart = pos;
       }
     });
+
+    canvas.addEventListener('mouseup', (e) => {
+      if (drawingRect && rectStart) {
+        const rectEnd = getMousePos(e);
+        const rect = {
+          x: Math.min(rectStart.x, rectEnd.x),
+          y: Math.min(rectStart.y, rectEnd.y),
+          width: Math.abs(rectStart.x - rectEnd.x),
+          height: Math.abs(rectStart.y - rectEnd.y)
+        };
+        rectangles.push(rect);
+        drawAll();
+        const areaCm2 = (rect.width * scaleRatio) * (rect.height * scaleRatio);
+        output.innerHTML = `Last rectangle area: ${areaCm2.toFixed(2)} cm²`;
+        drawingRect = false;
+        rectStart = null;
+      }
+    });
+
+    function drawAll() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      rectangles.forEach(rect => {
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+      });
+      clickPoints.forEach(drawPoint);
+    }
+
+    function drawPoint(p) {
+      ctx.fillStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     function getDistance(p1, p2) {
       const dx = p2.x - p1.x;
       const dy = p2.y - p1.y;
       return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+      };
+    }
+
+    function resetTool() {
+      clickPoints = [];
+      scaleRatio = null;
+      rectangles = [];
+      drawingRect = false;
+      rectStart = null;
     }
   </script>
 </body>
