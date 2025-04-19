@@ -2,12 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Photo Measure Tool</title>
   <style>
     canvas {
       border: 1px solid #ccc;
       cursor: crosshair;
       max-width: 100%;
+      height: auto;
     }
     #output {
       margin-top: 10px;
@@ -16,7 +18,7 @@
 </head>
 <body>
   <h2>Measure From Image</h2>
-  <input type="file" id="upload" accept="image/*">
+  <input type="file" id="upload" accept="image/*" capture="environment">
   <br><br>
   <button id="okBtn" disabled>OK</button>
   <button id="doneBtn" disabled>DONE</button>
@@ -69,7 +71,7 @@
         clickPoints.push(pos);
         drawAll();
         if (clickPoints.length === 2) {
-          drawAll(); // ensures both red dots are shown before prompt
+          drawAll();
           setTimeout(() => {
             const dist = getDistance(clickPoints[0], clickPoints[1]);
             const realLength = prompt("Enter the actual length between these two points (in cm):");
