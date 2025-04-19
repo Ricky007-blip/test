@@ -73,7 +73,7 @@
           const realLength = prompt("Enter the actual length between these two points (in cm):");
           if (realLength && !isNaN(realLength)) {
             scaleRatio = realLength / dist;
-            clickPoints = []; // Clear the reference points
+            clickPoints = [];
             output.innerHTML = `Scale set: 1 pixel = ${scaleRatio.toFixed(4)} cm. Now draw rectangle of the wall.`;
             okBtn.disabled = false;
             doneBtn.disabled = false;
@@ -130,8 +130,17 @@
     });
 
     redoBtn.addEventListener('click', () => {
-      rectangles.pop();
-      areaList.removeChild(areaList.lastChild);
+      if (!scaleRatio && clickPoints.length > 0) {
+        clickPoints.pop();
+      } else if (rectPreview || rectangles.length > 0) {
+        if (rectPreview) {
+          rectPreview = null;
+          rectStart = null;
+        } else {
+          rectangles.pop();
+          areaList.removeChild(areaList.lastChild);
+        }
+      }
       drawAll();
     });
 
@@ -139,7 +148,6 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
 
-      // Draw reference points if scale is not set
       if (!scaleRatio && clickPoints.length > 0) {
         ctx.fillStyle = 'red';
         clickPoints.forEach(p => {
@@ -154,6 +162,7 @@
         ctx.lineWidth = 2;
         ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
       });
+
       if (rectPreview) {
         ctx.strokeStyle = 'blue';
         ctx.lineWidth = 1;
