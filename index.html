@@ -20,6 +20,7 @@
   <br><br>
   <button id="okBtn" disabled>OK</button>
   <button id="doneBtn" disabled>DONE</button>
+  <button id="redoBtn">REDO</button>
   <br><br>
   <canvas id="canvas"></canvas>
   <div id="output"></div>
@@ -32,6 +33,7 @@
     const output = document.getElementById('output');
     const okBtn = document.getElementById('okBtn');
     const doneBtn = document.getElementById('doneBtn');
+    const redoBtn = document.getElementById('redoBtn');
     const areaList = document.getElementById('areaList');
 
     let img = new Image();
@@ -65,12 +67,12 @@
       const pos = getMousePos(e);
       if (!scaleRatio) {
         clickPoints.push(pos);
-        drawPoint(pos);
         if (clickPoints.length === 2) {
           const dist = getDistance(clickPoints[0], clickPoints[1]);
           const realLength = prompt("Enter the actual length between these two points (in cm):");
           if (realLength && !isNaN(realLength)) {
             scaleRatio = realLength / dist;
+            clickPoints = []; // Clear the reference points
             output.innerHTML = `Scale set: 1 pixel = ${scaleRatio.toFixed(4)} cm. Now draw rectangle of the wall.`;
             okBtn.disabled = false;
             doneBtn.disabled = false;
@@ -102,9 +104,10 @@
       if (rectPreview && scaleRatio) {
         rectangles.push({ ...rectPreview, type: mode });
         const areaCm2 = (rectPreview.width * scaleRatio) * (rectPreview.height * scaleRatio);
+        const areaM2 = areaCm2 / 10000;
         const label = mode === 'wall' ? 'Wall' : 'Opening';
         const li = document.createElement('li');
-        li.textContent = `${label}: ${areaCm2.toFixed(2)} cm²`;
+        li.textContent = `${label}: ${areaM2.toFixed(2)} m²`;
         areaList.appendChild(li);
         drawAll();
         rectPreview = null;
@@ -122,7 +125,13 @@
       const wallArea = (wall.width * scaleRatio) * (wall.height * scaleRatio);
       const openingsArea = openings.reduce((sum, r) => sum + (r.width * scaleRatio) * (r.height * scaleRatio), 0);
       const paintable = wallArea - openingsArea;
-      output.innerHTML = `Total paintable area: ${paintable.toFixed(2)} cm²`;
+      output.innerHTML = `Total paintable area: ${(paintable / 10000).toFixed(2)} m²`;
+    });
+
+    redoBtn.addEventListener('click', () => {
+      resetTool();
+      ctx.drawImage(img, 0, 0);
+      output.innerHTML = 'Click two points (e.g. known width), then input actual length.';
     });
 
     function drawAll() {
@@ -140,14 +149,6 @@
         ctx.strokeRect(rectPreview.x, rectPreview.y, rectPreview.width, rectPreview.height);
         ctx.setLineDash([]);
       }
-      clickPoints.forEach(drawPoint);
-    }
-
-    function drawPoint(p) {
-      ctx.fillStyle = 'red';
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-      ctx.fill();
     }
 
     function getDistance(p1, p2) {
