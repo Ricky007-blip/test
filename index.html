@@ -14,6 +14,10 @@
     #output {
       margin-top: 10px;
     }
+    .flash {
+      background-color: #4CAF50 !important;
+      transition: background-color 0.2s;
+    }
   </style>
 </head>
 <body>
@@ -49,8 +53,16 @@
     let isDrawing = false;
     let mode = 'wall';
 
-    loadPhotoBtn.addEventListener('click', () => {
-      upload.click();
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPhotoBtn.addEventListener('click', () => {
+        loadPhotoBtn.classList.add('flash');
+        setTimeout(() => loadPhotoBtn.classList.remove('flash'), 200);
+        try {
+          upload.click();
+        } catch (err) {
+          alert("Could not open file selector. Please allow access to media/photos in your browser settings.");
+        }
+      });
     });
 
     upload.addEventListener('change', (e) => {
