@@ -22,9 +22,7 @@
 </head>
 <body>
   <h2>Measure From Image</h2>
-  <label for="upload" id="loadPhotoLabel">
-    <button id="loadPhotoBtn">Load Photo</button>
-  </label>
+  <button id="loadPhotoBtn">Load Photo</button>
   <input type="file" id="upload" accept="image/*" capture="environment" style="display: none;">
   <br><br>
   <button id="okBtn" disabled>OK</button>
@@ -55,14 +53,17 @@
     let isDrawing = false;
     let mode = 'wall';
 
+    loadPhotoBtn.addEventListener('click', () => {
+      loadPhotoBtn.classList.add('flash');
+      setTimeout(() => loadPhotoBtn.classList.remove('flash'), 200);
+      upload.click();
+    });
+
     upload.addEventListener('click', (e) => {
-      upload.value = null; // reset input to allow re-selection of same image
+      upload.value = null;
     });
 
     upload.addEventListener('change', (e) => {
-      loadPhotoBtn.classList.add('flash');
-      setTimeout(() => loadPhotoBtn.classList.remove('flash'), 200);
-
       const file = e.target.files[0];
       if (!file) return;
 
