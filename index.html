@@ -56,7 +56,7 @@
     loadPhotoBtn.addEventListener('click', () => {
       loadPhotoBtn.classList.add('flash');
       setTimeout(() => loadPhotoBtn.classList.remove('flash'), 200);
-      upload.click();
+      upload.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
 
     upload.addEventListener('click', (e) => {
@@ -88,18 +88,16 @@
         drawAll();
         if (clickPoints.length === 2) {
           drawAll();
-          setTimeout(() => {
-            const dist = getDistance(clickPoints[0], clickPoints[1]);
-            const realLength = prompt("Enter the actual length between these two points (in cm):");
-            if (realLength && !isNaN(realLength)) {
-              scaleRatio = realLength / dist;
-              clickPoints = [];
-              output.innerHTML = `Scale set: 1 pixel = ${scaleRatio.toFixed(4)} cm. Now draw rectangle of the wall.`;
-              okBtn.disabled = false;
-              doneBtn.disabled = false;
-              drawAll();
-            }
-          }, 10);
+          const dist = getDistance(clickPoints[0], clickPoints[1]);
+          const realLength = prompt("Enter the actual length between these two points (in cm):");
+          if (realLength && !isNaN(realLength)) {
+            scaleRatio = realLength / dist;
+            clickPoints = [];
+            output.innerHTML = `Scale set: 1 pixel = ${scaleRatio.toFixed(4)} cm. Now draw rectangle of the wall.`;
+            okBtn.disabled = false;
+            doneBtn.disabled = false;
+            drawAll();
+          }
         }
       } else {
         rectStart = pos;
@@ -108,15 +106,19 @@
     });
 
     canvas.addEventListener('mousemove', (e) => {
-      if (!isDrawing || !rectStart) return;
-      const current = getMousePos(e);
-      rectPreview = {
-        x: Math.min(rectStart.x, current.x),
-        y: Math.min(rectStart.y, current.y),
-        width: Math.abs(current.x - rectStart.x),
-        height: Math.abs(current.y - rectStart.y)
-      };
-      drawAll();
+      if (!scaleRatio && clickPoints.length === 1) {
+        clickPoints[1] = getMousePos(e);
+        drawAll();
+      } else if (isDrawing && rectStart) {
+        const current = getMousePos(e);
+        rectPreview = {
+          x: Math.min(rectStart.x, current.x),
+          y: Math.min(rectStart.y, current.y),
+          width: Math.abs(current.x - rectStart.x),
+          height: Math.abs(current.y - rectStart.y)
+        };
+        drawAll();
+      }
     });
 
     canvas.addEventListener('mouseup', () => {
