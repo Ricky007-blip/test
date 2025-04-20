@@ -65,6 +65,11 @@
       });
     });
 
+    upload.addEventListener('click', (e) => {
+      // Force Android devices to re-trigger input if it was previously cancelled
+      e.target.value = null;
+    });
+
     upload.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
