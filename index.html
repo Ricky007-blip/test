@@ -22,8 +22,10 @@
 </head>
 <body>
   <h2>Measure From Image</h2>
+  <label for="upload" id="loadPhotoLabel">
+    <button id="loadPhotoBtn">Load Photo</button>
+  </label>
   <input type="file" id="upload" accept="image/*" capture="environment" style="display: none;">
-  <button id="loadPhotoBtn">Load Photo</button>
   <br><br>
   <button id="okBtn" disabled>OK</button>
   <button id="doneBtn" disabled>DONE</button>
@@ -53,24 +55,14 @@
     let isDrawing = false;
     let mode = 'wall';
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadPhotoBtn.addEventListener('click', () => {
-        loadPhotoBtn.classList.add('flash');
-        setTimeout(() => loadPhotoBtn.classList.remove('flash'), 200);
-        try {
-          upload.click();
-        } catch (err) {
-          alert("Could not open file selector. Please allow access to media/photos in your browser settings.");
-        }
-      });
-    });
-
     upload.addEventListener('click', (e) => {
-      // Force Android devices to re-trigger input if it was previously cancelled
-      e.target.value = null;
+      upload.value = null; // reset input to allow re-selection of same image
     });
 
     upload.addEventListener('change', (e) => {
+      loadPhotoBtn.classList.add('flash');
+      setTimeout(() => loadPhotoBtn.classList.remove('flash'), 200);
+
       const file = e.target.files[0];
       if (!file) return;
 
