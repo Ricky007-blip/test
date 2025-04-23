@@ -1,228 +1,326 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photo Measure Tool</title>
-  <style>
-    canvas {
-      border: 1px solid #ccc;
-      cursor: crosshair;
-      max-width: 100%;
-      height: auto;
-    }
-    #output {
-      margin-top: 10px;
-    }
-    .flash {
-      background-color: #4CAF50 !important;
-      transition: background-color 0.2s;
-    }
-  </style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Reseplanerare med Bränsleberäkning</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<style>
+    	body {
+        	font-family: 'Inter', sans-serif;
+    	}
+    	#map {
+        	height: 400px;
+        	border-radius: 0.5rem;
+        	margin-bottom: 1rem;
+        	cursor: pointer;
+    	}
+    	#map:active {
+         	cursor: grabbing;
+    	}
+    	.instructions {
+        	text-align: center;
+        	margin-bottom: 0.5rem;
+        	font-size: 0.9rem;
+        	color: #555;
+    	}
+	</style>
+	<script>
+    	let map;
+    	let directionsService;
+    	let directionsRenderer;
+    	let routeDetails;
+    	let startMarker;
+    	let endMarker;
+    	let mapClickCount = 0;
+    	let geocoder; // Add geocoder
+
+    	function initMap() {
+        	if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+            	console.error('Google Maps API not loaded');
+            	document.getElementById("map").innerHTML = "<div class='text-red-500'>Kunde inte ladda kartan. Kontrollera din anslutning och API-nyckel.</div>";
+            	return;
+        	}
+
+        	google.maps.importLibrary("maps").then(({ Map }) => {
+            	google.maps.importLibrary("routes").then(({ DirectionsService, DirectionsRenderer }) => {
+                	map = new Map(document.getElementById("map"), {
+                    	center: { lat: 60, lng: 18 },
+                    	zoom: 5,
+                	});
+                	directionsService = new DirectionsService();
+                	directionsRenderer = new DirectionsRenderer({ map });
+            	});
+
+            	google.maps.importLibrary("geocoding").then(({ Geocoder }) => { // Load Geocoder
+                	geocoder = new Geocoder(); // Initialize Geocoder
+                	map.addListener("click", (event) => {
+                    	mapClickCount++;
+                    	updateInstructions(); // Call function to update instructions
+                    	if (mapClickCount === 1) {
+                        	geocodeLatLng(event.latLng, "start"); // Pass "start"
+                    	} else if (mapClickCount === 2) {
+                        	geocodeLatLng(event.latLng, "end"); // Pass "end"
+                    	} else {
+                        	resetMap();
+                    	}
+                	});
+            	});
+        	});
+    	}
+
+    	function resetMap() {
+        	startMarker.setMap(null);
+        	endMarker.setMap(null);
+        	startMarker = null;
+        	endMarker = null;
+        	mapClickCount = 0;
+        	document.getElementById("start-point").value = "";
+        	document.getElementById("end-point").value = "";
+        	directionsRenderer.setDirections({ routes: [] });
+        	document.getElementById("route-details").style.display = "none";
+        	document.getElementById("fuel-info").style.display = "none";
+        	updateInstructions();
+    	}
+
+
+    	function updateInstructions() {
+        	const instructionsDiv = document.querySelector(".instructions");
+        	if (mapClickCount === 0) {
+            	instructionsDiv.textContent = "Klicka på kartan för att välja startpunkt.";
+        	} else if (mapClickCount === 1) {
+            	instructionsDiv.textContent = "Klicka igen för att välja slutpunkt.";
+        	} else if (mapClickCount === 2) {
+            	instructionsDiv.textContent = "Klicka igen för att rensa och börja om.";
+        	}
+    	}
+
+    	function geocodeLatLng(latlng, type) { // Added type parameter
+        	geocoder.geocode({ location: latlng })
+            	.then((response) => {
+                	if (response.results[0]) {
+                    	const nearestLocation = response.results[0].geometry.location;
+                    	const address = response.results[0].formatted_address; //get address
+
+                    	if (type === "start") { // Use the type parameter
+                        	startMarker = new google.maps.Marker({
+                            	position: nearestLocation,
+                            	map,
+                            	label: {
+                                	text: "Start",
+                                	color: "#00FF00"
+                            	},
+                        	});
+                        	document.getElementById("start-point").value = address; //use address
+                    	} else {
+                        	endMarker = new google.maps.Marker({
+                            	position: nearestLocation,
+                            	map,
+                            	label: {
+                                	text: "Slut",
+                                	color: "#FF0000"
+                            	},
+                        	});
+                        	document.getElementById("end-point").value = address; //use address
+                        	calculateRoute();
+                    	}
+                	} else {
+                    	alert("Kunde inte hitta en giltig plats nära klicket.");
+                    	if(type === "start") {
+                        	mapClickCount = 0;
+                    	} else if (type === "end") {
+                        	mapClickCount = 1;
+                    	}
+                    	updateInstructions();
+                	}
+            	})
+            	.catch((error) => {
+                	console.error("Geocoder failed:", error);
+                	alert("Kunde inte hitta en giltig plats. Fel: " + error);
+                	if(type === "start") {
+                    	mapClickCount = 0;
+                	} else if (type === "end") {
+                    	mapClickCount = 1;
+                	}
+                	updateInstructions();
+            	});
+    	}
+
+
+    	function calculateRoute() {
+        	const start = document.getElementById("start-point").value;
+        	const end = document.getElementById("end-point").value;
+        	const selectedCar = document.getElementById("car-model").value;
+
+        	if (!start || !end) {
+            	return;
+        	}
+
+        	const request = {
+            	origin: start,
+            	destination: end,
+            	travelMode: google.maps.TravelMode.DRIVING,
+        	};
+
+        	directionsService.route(request, (response, status) => {
+            	if (status === google.maps.DirectionsStatus.OK) {
+                	directionsRenderer.setDirections(response);
+                	routeDetails = response.routes[0].legs;
+                	displayRouteDetails(response.routes[0]);
+            	} else {
+                	console.error("Directions Service Error:", status);
+                	alert("Kunde inte beräkna rutten: " + status + ". Kontrollera din API-nyckel och inställningar.");
+            	}
+        	});
+    	}
+
+    	function displayRouteDetails(route) {
+        	let distance = 0;
+        	let duration = 0;
+        	if (route && route.legs) { // Check if route and route.legs are defined
+            	for (const leg of route.legs) {
+                	distance += leg.distance.value;
+                	duration += leg.duration.value;
+            	}
+        	} else {
+            	// Handle the case where route or route.legs is undefined or null
+            	console.warn("displayRouteDetails called with invalid route data:", route);
+            	document.getElementById("route-distance").textContent = "N/A";
+            	document.getElementById("route-duration").textContent = "N/A";
+            	document.getElementById("route-details").style.display = "none";
+            	document.getElementById("fuel-info").style.display = "none";
+            	return; // Stop execution to prevent further errors
+        	}
+        	const distanceKm = distance / 1000;
+        	const durationMinutes = duration / 60;
+
+        	document.getElementById("route-distance").textContent = distanceKm.toFixed(2) + " km";
+        	document.getElementById("route-duration").textContent = formatDuration(durationMinutes);
+        	document.getElementById("route-details").style.display = "block";
+
+        	calculateFuelConsumption(distanceKm, route); // Pass route to calculateFuelConsumption
+    	}
+
+    	function formatDuration(minutes) {
+        	const hours = Math.floor(minutes / 60);
+        	const remainingMinutes = Math.round(minutes % 60);
+        	return hours > 0 ? `${hours} tim ${remainingMinutes} min` : `${remainingMinutes} min`;
+    	}
+
+    	const carModels = {
+        	"volvo-v70": { consumption: 0.7, tankCapacity: 60 },
+        	"saab-93": { consumption: 0.65, tankCapacity: 55 },
+        	"toyota-yaris": { consumption: 0.5, tankCapacity: 42 },
+        	"tesla-model3": { consumption: 0.15, tankCapacity: 70 },
+    	};
+
+    	function calculateFuelConsumption(distanceKm, route) { // Added route parameter
+        	const selectedCar = document.getElementById("car-model").value;
+        	const car = carModels["toyota-yaris"];
+
+        	if (!car) {
+            	document.getElementById("fuel-info").textContent = "Välj en bilmodell för att beräkna bränsleförbrukning.";
+            	document.getElementById("fuel-info").style.display = "block";
+            	return;
+        	}
+
+        	const fuelConsumed = (distanceKm / 10) * car.consumption;
+        	const range = car.tankCapacity / car.consumption * 10;
+        	document.getElementById("fuel-consumed").textContent = fuelConsumed.toFixed(2) + " liter";
+        	document.getElementById("driving-range").textContent = range.toFixed(2) + " km";
+        	document.getElementById("fuel-info").style.display = "block";
+
+        	getFuelPrices(route).then(prices => { // Pass route to getFuelPrices
+            	const totalPrice = fuelConsumed * prices.averagePrice;
+            	document.getElementById("fuel-cost").textContent = totalPrice.toFixed(2) + " kr";
+        	});
+    	}
+
+    	async function getFuelPrices(route) { // Added route parameter
+        	const simulatedPrices = {
+            	Sweden: [18.50, 19.20, 18.80],
+            	Germany: [1.70, 1.80, 1.75],
+            	Denmark: [14.00, 14.50, 14.20],
+        	};
+
+        	let countries = ['Sweden'];
+         	if (route && route.legs && route.legs.length > 0) {
+            	const endLocation = route.legs[route.legs.length - 1].end_location;
+            	if (endLocation.lat() > 55 && endLocation.lng() > 10) {
+                	countries.push('Denmark');
+            	} else if (endLocation.lng() > 12) {
+                	countries.push('Germany');
+            	}
+        	}
+
+
+        	let totalSum = 0;
+        	let priceCount = 0;
+        	for (const country of countries) {
+            	const prices = simulatedPrices[country];
+            	if (prices) {
+                	prices.forEach(price => {
+                    	totalSum += price;
+                    	priceCount++;
+                	});
+            	}
+        	}
+        	const averagePrice = totalSum / priceCount;
+        	return { averagePrice: averagePrice, currency: 'kr' };
+    	}
+
+    	window.onload = function () {
+        	initMap();
+    	};
+	</script>
 </head>
-<body>
-  <h2>Measure From Image</h2>
-  <button id="loadPhotoBtn">Load Photo</button>
-  <input type="file" id="upload" accept="image/*" capture="environment" style="display: none;">
-  <br><br>
-  <button id="okBtn" disabled>OK</button>
-  <button id="doneBtn" disabled>DONE</button>
-  <button id="redoBtn">REDO</button>
-  <br><br>
-  <canvas id="canvas"></canvas>
-  <div id="output"></div>
-  <ul id="areaList"></ul>
+<body class="bg-gradient-to-r from-blue-100 to-purple-100 p-4">
+	<div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl mx-auto transition-transform hover:scale-105">
+    	<h1 class="text-2xl font-semibold text-indigo-600 mb-4 text-center">Reseplanerare med Bränsleberäkning</h1>
+    	<div class="instructions">Klicka på kartan för att välja startpunkt.</div>
 
-  <script>
-    const upload = document.getElementById('upload');
-    const loadPhotoBtn = document.getElementById('loadPhotoBtn');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const output = document.getElementById('output');
-    const okBtn = document.getElementById('okBtn');
-    const doneBtn = document.getElementById('doneBtn');
-    const redoBtn = document.getElementById('redoBtn');
-    const areaList = document.getElementById('areaList');
+    	<div class="space-y-4">
+        	<div>
+            	<label for="start-point" class="block text-gray-700 text-sm font-bold mb-2">Startpunkt:</label>
+            	<input type="text" id="start-point" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+        	</div>
+        	<div>
+            	<label for="end-point" class="block text-gray-700 text-sm font-bold mb-2">Slutpunkt:</label>
+            	<input type="text" id="end-point" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" readonly>
+        	</div>
+        	<div>
+            	<label for="car-model" class="block text-gray-700 text-sm font-bold mb-2">Bilmodell:</label>
+            	<select id="car-model" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                	<option value="volvo-v70">Volvo V70</option>
+                	<option value="saab-93">Saab 9-3</option>
+                	<option value="toyota-yaris">Toyota Yaris</option>
+                 	<option value="tesla-model3">Tesla Model 3</option>
+            	</select>
+        	</div>
+    	</div>
 
-    let img = new Image();
-    let clickPoints = [];
-    let scaleRatio = null;
-    let rectangles = [];
-    let rectStart = null;
-    let rectPreview = null;
-    let isDrawing = false;
-    let mode = 'wall';
+    	<div id="map" class="mt-4"></div>
 
-    loadPhotoBtn.addEventListener('click', () => {
-      loadPhotoBtn.classList.add('flash');
-      setTimeout(() => loadPhotoBtn.classList.remove('flash'), 200);
-      upload.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
+    	<div id="route-details" class="mt-4 bg-gray-50 rounded-md p-4 shadow-inner" style="display: none;">
+        	<h2 class="text-lg font-semibold text-indigo-600 mb-2">Ruttinformation:</h2>
+        	<p id="route-distance" class="text-gray-800"><span class="font-semibold">Distans: </span></p>
+        	<p id="route-duration" class="text-gray-800"><span class="font-semibold">Beräknad tid: </span></p>
+    	</div>
 
-    upload.addEventListener('click', (e) => {
-      upload.value = null;
-    });
-
-    upload.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        img.onload = function () {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-          resetTool();
-          output.innerHTML = 'Click two points (e.g. known width), then input actual length.';
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    canvas.addEventListener('mousedown', (e) => {
-      const pos = getMousePos(e);
-      if (!scaleRatio) {
-        clickPoints.push(pos);
-        drawAll();
-        if (clickPoints.length === 2) {
-          drawAll();
-          const dist = getDistance(clickPoints[0], clickPoints[1]);
-          const realLength = prompt("Enter the actual length between these two points (in cm):");
-          if (realLength && !isNaN(realLength)) {
-            scaleRatio = realLength / dist;
-            clickPoints = [];
-            output.innerHTML = `Scale set: 1 pixel = ${scaleRatio.toFixed(4)} cm. Now draw rectangle of the wall.`;
-            okBtn.disabled = false;
-            doneBtn.disabled = false;
-            drawAll();
-          }
-        }
-      } else {
-        rectStart = pos;
-        isDrawing = true;
-      }
-    });
-
-    canvas.addEventListener('mousemove', (e) => {
-      if (!scaleRatio && clickPoints.length === 1) {
-        clickPoints[1] = getMousePos(e);
-        drawAll();
-      } else if (isDrawing && rectStart) {
-        const current = getMousePos(e);
-        rectPreview = {
-          x: Math.min(rectStart.x, current.x),
-          y: Math.min(rectStart.y, current.y),
-          width: Math.abs(current.x - rectStart.x),
-          height: Math.abs(current.y - rectStart.y)
-        };
-        drawAll();
-      }
-    });
-
-    canvas.addEventListener('mouseup', () => {
-      isDrawing = false;
-    });
-
-    okBtn.addEventListener('click', () => {
-      if (rectPreview && scaleRatio) {
-        rectangles.push({ ...rectPreview, type: mode });
-        const areaCm2 = (rectPreview.width * scaleRatio) * (rectPreview.height * scaleRatio);
-        const areaM2 = areaCm2 / 10000;
-        const label = mode === 'wall' ? 'Wall' : 'Opening';
-        const li = document.createElement('li');
-        li.textContent = `${label}: ${areaM2.toFixed(2)} m²`;
-        areaList.appendChild(li);
-        drawAll();
-        rectPreview = null;
-        rectStart = null;
-        if (mode === 'wall') {
-          mode = 'opening';
-          output.innerHTML = 'Draw rectangle of each window or door on the wall and press OK. Press DONE-button after the last window or door.';
-        }
-      }
-    });
-
-    doneBtn.addEventListener('click', () => {
-      const wall = rectangles.find(r => r.type === 'wall');
-      const openings = rectangles.filter(r => r.type === 'opening');
-      const wallArea = (wall.width * scaleRatio) * (wall.height * scaleRatio);
-      const openingsArea = openings.reduce((sum, r) => sum + (r.width * scaleRatio) * (r.height * scaleRatio), 0);
-      const paintable = wallArea - openingsArea;
-      output.innerHTML = `Total paintable area: ${(paintable / 10000).toFixed(2)} m²`;
-    });
-
-    redoBtn.addEventListener('click', () => {
-      if (!scaleRatio && clickPoints.length > 0) {
-        clickPoints.pop();
-      } else if (rectPreview || rectangles.length > 0) {
-        if (rectPreview) {
-          rectPreview = null;
-          rectStart = null;
-        } else {
-          rectangles.pop();
-          areaList.removeChild(areaList.lastChild);
-        }
-      }
-      drawAll();
-    });
-
-    function drawAll() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-
-      if (!scaleRatio && clickPoints.length > 0) {
-        ctx.fillStyle = 'red';
-        clickPoints.forEach(p => {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, 5, 0, 2 * Math.PI);
-          ctx.fill();
-        });
-      }
-
-      rectangles.forEach(rect => {
-        ctx.strokeStyle = rect.type === 'wall' ? 'green' : 'blue';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
-      });
-
-      if (rectPreview) {
-        ctx.strokeStyle = 'blue';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([6]);
-        ctx.strokeRect(rectPreview.x, rectPreview.y, rectPreview.width, rectPreview.height);
-        ctx.setLineDash([]);
-      }
-    }
-
-    function getDistance(p1, p2) {
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    function getMousePos(evt) {
-      const rect = canvas.getBoundingClientRect();
-      return {
-        x: evt.clientX - rect.left,
-        y: evt.clientY - rect.top
-      };
-    }
-
-    function resetTool() {
-      clickPoints = [];
-      scaleRatio = null;
-      rectangles = [];
-      drawingRect = false;
-      rectStart = null;
-      rectPreview = null;
-      isDrawing = false;
-      mode = 'wall';
-      okBtn.disabled = true;
-      doneBtn.disabled = true;
-      areaList.innerHTML = '';
-    }
-  </script>
+    	<div id="fuel-info" class="mt-4 bg-gray-50 rounded-md p-4 shadow-inner" style="display: none;">
+        	<h2 class="text-lg font-semibold text-indigo-600 mb-2">Bränsleinformation:</h2>
+        	<p id="fuel-consumed" class="text-gray-800"><span class="font-semibold">Beräknad förbrukning: </span></p>
+        	<p id="fuel-cost" class="text-gray-800"><span class="font-semibold">Beräknad kostnad: </span></p>
+        	<p id="driving-range" class="text-gray-800"><span class="font-semibold">Räckvidd på tanken: </span></p>
+    	</div>
+	</div>
+	<script>
+    	window.onload = function () {
+        	initMap();
+    	};
+	</script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQ4DylmwwMr8PlPevsZ4S0dGglv1NHgHA&callback=initMap" async defer></script>
 </body>
 </html>
