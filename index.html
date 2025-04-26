@@ -1,1 +1,49 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <title>Ta ett foto</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        img {
+            margin-top: 20px;
+            max-width: 90%;
+            height: auto;
+            border: 2px solid #333;
+            border-radius: 10px;
+        }
+        input[type="file"] {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Ta ett foto</h1>
+    <input type="file" accept="image/*" capture="environment" id="cameraInput">
+    <br>
+    <img id="photo" alt="Ditt foto kommer visas här">
+
+    <script>
+        const cameraInput = document.getElementById('cameraInput');
+        const photo = document.getElementById('photo');
+
+        cameraInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    photo.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+
+</body>
+</html>
 
